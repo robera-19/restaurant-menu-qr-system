@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. ADMINS (For Login & Dashboard)
+model Admin {
+  id           String     @id @default(uuid()) @db.Uuid
+  fullName     String     @map("full_name") @db.VarChar(100)
+  email        String     @unique @db.VarChar(150)
+  passwordHash String     @map("password_hash") @db.Text
+  isActive     Boolean    @default(true) @map("is_active")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamp
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamp
+
+  categories   Category[]
+  menuItems    MenuItem[]
+  qrCodes      QrCode[]
+
+  @@map("admins")
+}
+
+// 2. CATEGORIES (Used for your Filter Bar)
+model Category {
+  id           String     @id @default(uuid()) @db.Uuid
+  name         String     @db.VarChar(100) // e.g., "Hot Drinks", "Pizza"
+  createdBy    String     @map("created_by") @db.Uuid
+  admin        Admin      @relation(fields: [createdBy], references: [id])
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamp
+  menuItems    MenuItem[]
+
+  @@map("categories")
+}
+
+// 3. MENU ITEMS (The "Cards" on your screen)
+model MenuItem {
+  id              String      @id @default(uuid()) @db.Uuid
+  categoryId      String      @map("category_id") @db.Uuid
+  category        Category    @relation(fields: [categoryId], references: [id])
+  createdBy       String      @map("created_by") @db.Uuid
+  admin           Admin       @relation(fields: [createdBy], references: [id])
+  
+  name            String      @db.VarChar(150)
+  slug            String?     @unique @db.VarChar(200)
+  description     String?     @db.Text
+  price           Decimal     @db.Decimal(10, 2)
+  oldPrice        Decimal?    @map("old_price") @db.Decimal(10, 2)
+  preparationTime Int?        @map("preparation_time") // "20 min" in your UI
+  spicyLevel      Int?        @default(0) @map("spicy_level") // Flame icons
+  
+  // The Switch Logic
+  isAvailable     Boolean     @default(true) @map("is_available")
+  isFeatured      Boolean     @default(false) @map("is_featured")
+
+  // Simple Tags (Hybrid approach)
+  ingredients     String[]    @default([])
+  allergens       String[]    @default([])
+
+  // Nutrition Facts (Flattened for simplicity)
+  calories        Int?
+  protein         String?     @db.VarChar(20)
+  carbs           String?     @db.VarChar(20)
+  fat             String?     @db.VarChar(20)
+  
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamp
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamp
+
+  ratings         Rating[]
+  images          MenuItemImage[] // For the Carousel (Multiple photos)
+
+  @@map("menu_items")
+}
+
+// 4. MENU ITEM IMAGES (For the Carousel)
+model MenuItemImage {
+  id         String   @id @default(uuid()) @db.Uuid
+  menuItemId String   @map("menu_item_id") @db.Uuid
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  imageUrl   String   @map("image_url") @db.Text
+  isPrimary  Boolean  @default(false) @map("is_primary") // The main card photo
+
+  @@map("menu_item_images")
+}
+
+// 5. RATINGS (The Feedback Popup)
+model Rating {
+  id           String   @id @default(uuid()) @db.Uuid
+  menuItemId   String   @map("menu_item_id") @db.Uuid
+  menuItem     MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  qrCodeId     String?  @map("qr_code_id") @db.Uuid // To know which table rated
+  ratingValue  Int      @map("rating_value") // 1-5 stars
+  comment      String?  @db.Text
+  customerName String?  @map("customer_name") @db.VarChar(100)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp
+
+  @@map("ratings")
+}
+
+// 6. QR CODES & ANALYTICS
+model QrCode {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(100) // e.g., "VIP Table 1"
+  shortId     String   @unique @map("short_id") @db.VarChar(20)
+  createdBy   String   @map("created_by") @db.Uuid
+  admin       Admin    @relation(fields: [createdBy], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp
+  
+  scans       QrScan[]
+
+  @@map("qr_codes")
+}
+
+model QrScan {
+  id         String   @id @default(uuid()) @db.Uuid
+  qrCodeId   String   @map("qr_code_id") @db.Uuid
+  qrCode     QrCode   @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  scannedAt  DateTime @default(now()) @map("scanned_at") @db.Timestamp
+
+  @@map("qr_scans")
+}
