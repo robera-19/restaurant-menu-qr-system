@@ -1,0 +1,137 @@
+openapi: 3.0.0
+info:
+  title: Ethio Buna - Restaurant QR Menu API
+  version: 1.0.0
+  description: API Documentation for the Restaurant QR Menu Management System
+
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+tags:
+  - name: Authentication
+    description: Admin management, security, and password recovery
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new admin
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, password]
+              properties:
+                fullName: { type: string, example: "Abebe Bikila" }
+                email: { type: string, example: "abebe@example.com" }
+                password: { type: string, example: "password123" }
+                role: { type: string, enum: [SUPER_ADMIN, ADMIN, STAFF], default: ADMIN }
+                profileImage: { type: string, example: "http://example.com/image.jpg" }
+      responses:
+        201:
+          description: Registered successfully. Verification email sent.
+        400:
+          description: Validation error or Email already exists.
+
+  /auth/verify-email:
+    get:
+      summary: Verify admin email address
+      tags: [Authentication]
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema: { type: string }
+          description: The token sent to the admin's email
+      responses:
+        200:
+          description: Email verified successfully.
+        400:
+          description: Invalid or expired token.
+
+  /auth/login:
+    post:
+      summary: Login to get JWT token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, example: "abebe@example.com" }
+                password: { type: string, example: "password123" }
+      responses:
+        200:
+          description: Login successful. Returns JWT.
+        401:
+          description: Invalid credentials or email not verified.
+
+  /auth/me:
+    get:
+      summary: Get current logged-in admin profile
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Admin data retrieved successfully.
+        401:
+          description: Not authorized. Token missing or invalid.
+
+  /auth/forgot-password:
+    post:
+      summary: Request a password reset link
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, example: "abebe@example.com" }
+      responses:
+        200:
+          description: Reset link sent to email (if user exists).
+
+  /auth/reset-password:
+    post:
+      summary: Reset password using the token from email
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token: { type: string, description: "Token from the reset email" }
+                password: { type: string, example: "new_secure_password_123" }
+      responses:
+        200:
+          description: Password updated successfully.
+        400:
+          description: Invalid or expired token.
+
+  /auth/logout:
+    get:
+      summary: Logout the user
+      tags: [Authentication]
+      responses:
+        200:
+          description: Successfully logged out.
