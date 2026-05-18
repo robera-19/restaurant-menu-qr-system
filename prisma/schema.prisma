@@ -4,6 +4,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
 }
 
 // 1. ADMINS (For Login & Dashboard)
@@ -12,7 +18,13 @@ model Admin {
   fullName     String     @map("full_name") @db.VarChar(100)
   email        String     @unique @db.VarChar(150)
   passwordHash String     @map("password_hash") @db.Text
+  role         Role       @default(ADMIN)
+  profileImage String?    @map("profile_image") @db.Text
   isActive     Boolean    @default(true) @map("is_active")
+  isVerified           Boolean   @default(false) @map("is_verified")
+  verificationToken    String?   @map("verification_token")
+  resetPasswordToken   String?   @map("reset_password_token")
+  resetPasswordExpires DateTime? @map("reset_password_expires")
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamp
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamp
 
