@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "description": "Restaurant QR Code Menu Management System",
   "main": "dist/server.js",
-  "scripts": {
-    "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts",
-    "build": "tsc",
-    "postinstall": "prisma generate",
-    "seed": "ts-node prisma/seed.ts"
-  },
+"scripts": {
+  "dev": "nodemon src/server.ts",
+  "build": "prisma generate && tsc",
+  "start": "node dist/server.js",
+  "postinstall": "prisma generate"
+},
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },
