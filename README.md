@@ -51,3 +51,25 @@ Step 5: Add Scripts to package.json
 
 # How to Run:
 npm run dev
+
+# to enable env variable readable
+npm i -D dotenv
+
+# to generate sql code from the prisma
+npx prisma migrate dev --name restaurantModelDatabase
+
+# dependecies need to be installed for authentication service
+npm install zod
+
+npm install bcrypt
+npm install -D @types/bcrypt
+
+npm install jsonwebtoken
+npm install -D @types/jsonwebtoken
+
+npm install swagger-ui-express yamljs
+
+# npm install nanoid      -->for installing qr code
+
+npm install qrcode
+npm install @types/qrcode -D
