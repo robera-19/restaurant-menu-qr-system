@@ -2,10 +2,8 @@ import app from "./app";
 import { env } from "./config/env";
 import prisma from "./config/prisma";
 
-
 const startServer = async () => {
   try {
-    // Test Database Connection
     await prisma.$connect();
     console.log("✅ Database connected successfully");
 
