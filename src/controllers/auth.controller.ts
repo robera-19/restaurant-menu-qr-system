@@ -22,7 +22,7 @@ export const register = async (
     const admin = await AuthService.create(req.body);
 
     const verifyUrl = `http://localhost:3000/verify-email?token=${admin.verificationToken}`;
-    sendEmail(
+    await sendEmail(
       admin.email,
       "Verify Your Email",
       `<a href="${verifyUrl}">Click here to verify</a>`,
