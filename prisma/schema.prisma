@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+   engineType = "library"
 }
 
 datasource db {
@@ -38,7 +39,7 @@ model Admin {
 // 2. CATEGORIES (Used for your Filter Bar)
 model Category {
   id           String     @id @default(uuid()) @db.Uuid
-  name         String     @db.VarChar(100) // e.g., "Hot Drinks", "Pizza"
+  name         String     @unique @db.VarChar(100) // e.g., "Hot Drinks", "Pizza"
   createdBy    String     @map("created_by") @db.Uuid
   admin        Admin      @relation(fields: [createdBy], references: [id])
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamp
@@ -48,40 +49,40 @@ model Category {
 }
 
 // 3. MENU ITEMS (The "Cards" on your screen)
-model MenuItem {
-  id              String      @id @default(uuid()) @db.Uuid
-  categoryId      String      @map("category_id") @db.Uuid
-  category        Category    @relation(fields: [categoryId], references: [id])
-  createdBy       String      @map("created_by") @db.Uuid
-  admin           Admin       @relation(fields: [createdBy], references: [id])
-  
-  name            String      @db.VarChar(150)
-  slug            String?     @unique @db.VarChar(200)
-  description     String?     @db.Text
-  price           Decimal     @db.Decimal(10, 2)
-  oldPrice        Decimal?    @map("old_price") @db.Decimal(10, 2)
-  preparationTime Int?        @map("preparation_time") // "20 min" in your UI
-  spicyLevel      Int?        @default(0) @map("spicy_level") // Flame icons
-  
-  // The Switch Logic
-  isAvailable     Boolean     @default(true) @map("is_available")
-  isFeatured      Boolean     @default(false) @map("is_featured")
+  model MenuItem {
+    id              String      @id @default(uuid()) @db.Uuid
+    categoryId      String      @map("category_id") @db.Uuid
+    category        Category    @relation(fields: [categoryId], references: [id])
+    createdBy       String      @map("created_by") @db.Uuid
+    admin           Admin       @relation(fields: [createdBy], references: [id])
+    
+    name            String      @unique @db.VarChar(150)
+    slug            String?     @unique @db.VarChar(200)
+    description     String?     @db.Text
+    price           Decimal     @db.Decimal(10, 2)
+    oldPrice        Decimal?    @map("old_price") @db.Decimal(10, 2)
+    preparationTime Int?        @map("preparation_time") // "20 min" in your UI
+    spicyLevel      Int?        @default(0) @map("spicy_level") // Flame icons
+    
+    // The Switch Logic
+    isAvailable     Boolean     @default(true) @map("is_available")
+    isFeatured      Boolean     @default(false) @map("is_featured")
 
-  // Simple Tags (Hybrid approach)
-  ingredients     String[]    @default([])
-  allergens       String[]    @default([])
+    // Simple Tags (Hybrid approach)
+    ingredients     String[]    @default([])
+    allergens       String[]    @default([])
 
-  // Nutrition Facts (Flattened for simplicity)
-  calories        Int?
-  protein         String?     @db.VarChar(20)
-  carbs           String?     @db.VarChar(20)
-  fat             String?     @db.VarChar(20)
-  
-  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamp
-  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamp
+    // Nutrition Facts (Flattened for simplicity)
+    calories        Int?
+    protein         String?     @db.VarChar(20)
+    carbs           String?     @db.VarChar(20)
+    fat             String?     @db.VarChar(20)
+    
+    createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamp
+    updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamp
 
-  ratings         Rating[]
-  images          MenuItemImage[] // For the Carousel (Multiple photos)
+    ratings         Rating[]
+    images          MenuItemImage[] // For the Carousel (Multiple photos)
 
   @@map("menu_items")
 }
@@ -103,6 +104,7 @@ model Rating {
   menuItemId   String   @map("menu_item_id") @db.Uuid
   menuItem     MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
   qrCodeId     String?  @map("qr_code_id") @db.Uuid // To know which table rated
+  qrCode       QrCode?  @relation(fields: [qrCodeId], references: [id])
   ratingValue  Int      @map("rating_value") // 1-5 stars
   comment      String?  @db.Text
   customerName String?  @map("customer_name") @db.VarChar(100)
@@ -121,6 +123,8 @@ model QrCode {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp
   
   scans       QrScan[]
+
+   ratings     Rating[] 
 
   @@map("qr_codes")
 }
