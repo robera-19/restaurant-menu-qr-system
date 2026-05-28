@@ -7,7 +7,7 @@ export const errorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-
+  // 1. Handle Zod Validation Errors (Cleanest way for frontend)
   if (err instanceof ZodError) {
     return res.status(400).json({
       message: "Validation Error",
@@ -15,6 +15,7 @@ export const errorHandler = (
     });
   }
 
+// 2. Handle Prisma Specific Errors
   if (err.code === "P2002") {
     return res.status(400).json({ message: "Email already exists" });
   }
@@ -25,6 +26,7 @@ export const errorHandler = (
       .json({ message: "Invalid data provided for fields like Role" });
   }
 
+// 3. Final Fallback
   const statusCode = err.status || 500;
   res.status(statusCode).json({
     message: err.message || "Internal Server Error",

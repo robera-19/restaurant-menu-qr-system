@@ -1,13 +1,13 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import crypto from "crypto";
-import * as AuthService from "../services/auth.service";
-import { env } from "../config/env";
-import { sendEmail } from "../utils/mail";
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import * as AuthService from '../services/auth.service';
+import { env } from '../config/env';
+import { sendEmail } from '../utils/mail';
 
 const signToken = (id: string, role: string) =>
-  jwt.sign({ id, role }, env.JWT_SECRET, { expiresIn: "1d" });
+  jwt.sign({ id, role }, env.JWT_SECRET, { expiresIn: '1d' });
 
 // 1. REGISTER
 export const register = async (
@@ -17,20 +17,20 @@ export const register = async (
 ) => {
   try {
     const exists = await AuthService.findByEmail(req.body.email);
-    if (exists) return res.status(400).json({ message: "Email taken" });
+    if (exists) return res.status(400).json({ message: 'Email taken' });
 
     const admin = await AuthService.create(req.body);
 
     const verifyUrl = `http://localhost:3000/verify-email?token=${admin.verificationToken}`;
-    sendEmail(
+    await sendEmail(
       admin.email,
-      "Verify Your Email",
+      'Verify Your Email',
       `<a href="${verifyUrl}">Click here to verify</a>`,
     );
 
     res
       .status(201)
-      .json({ message: "Registered! Please check your email to verify." });
+      .json({ message: 'Registered! Please check your email to verify.' });
   } catch (error) {
     next(error);
   }
@@ -46,13 +46,13 @@ export const verifyEmail = async (
     const admin = await AuthService.findByVerificationToken(
       req.query.token as string,
     );
-    if (!admin) return res.status(400).json({ message: "Invalid token" });
+    if (!admin) return res.status(400).json({ message: 'Invalid token' });
 
     await AuthService.update(admin.id, {
       isVerified: true,
       verificationToken: null,
     });
-    res.json({ message: "Email verified! You can now login." });
+    res.json({ message: 'Email verified! You can now login.' });
   } catch (error) {
     next(error);
   }
@@ -69,10 +69,10 @@ export const login = async (
     const admin = await AuthService.findByEmail(email);
 
     if (!admin || !(await bcrypt.compare(password, admin.passwordHash))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
     if (!admin.isVerified)
-      return res.status(401).json({ message: "Verify email first" });
+      return res.status(401).json({ message: 'Verify email first' });
 
     const token = signToken(admin.id, admin.role);
     res.json({ token, admin });
@@ -90,9 +90,9 @@ export const forgotPassword = async (
   try {
     const admin = await AuthService.findByEmail(req.body.email);
     if (!admin)
-      return res.json({ message: "If email exists, a link was sent" });
+      return res.json({ message: 'If email exists, a link was sent' });
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetToken = crypto.randomBytes(32).toString('hex');
     await AuthService.update(admin.id, {
       resetPasswordToken: resetToken,
       resetPasswordExpires: new Date(Date.now() + 3600000),
@@ -101,11 +101,11 @@ export const forgotPassword = async (
     const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
     await sendEmail(
       admin.email,
-      "Password Reset",
+      'Password Reset',
       `<a href="${resetUrl}">Reset Password</a>`,
     );
 
-    res.json({ message: "Check your email for the reset link" });
+    res.json({ message: 'Check your email for the reset link' });
   } catch (error) {
     next(error);
   }
@@ -121,7 +121,7 @@ export const resetPassword = async (
     const { token, password } = req.body;
     const admin = await AuthService.findByResetToken(token);
     if (!admin)
-      return res.status(400).json({ message: "Token invalid or expired" });
+      return res.status(400).json({ message: 'Token invalid or expired' });
 
     const passwordHash = await bcrypt.hash(password, 12);
     await AuthService.update(admin.id, {
@@ -130,7 +130,7 @@ export const resetPassword = async (
       resetPasswordExpires: null,
     });
 
-    res.json({ message: "Password updated successfully" });
+    res.json({ message: 'Password updated successfully' });
   } catch (error) {
     next(error);
   }
@@ -138,7 +138,7 @@ export const resetPassword = async (
 
 // 6. LOGOUT
 export const logout = (req: Request, res: Response) => {
-  res.json({ message: "Logged out. Delete token from frontend." });
+  res.json({ message: 'Logged out. Delete token from frontend.' });
 };
 
 // 7. GET ME
@@ -152,7 +152,7 @@ export const getMe = async (
     const adminId = (req as any).user.id;
     const admin = await AuthService.findById(adminId);
 
-    if (!admin) return res.status(404).json({ message: "Admin not found" });
+    if (!admin) return res.status(404).json({ message: 'Admin not found' });
 
     res.status(200).json({ admin });
   } catch (error) {
