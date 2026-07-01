@@ -1,5 +1,5 @@
-import { z } from "zod";
-import "dotenv/config";
+import { z } from 'zod';
+import 'dotenv/config';
 
 const envSchema = z.object({
   PORT: z.string().default('5000'),
@@ -11,10 +11,6 @@ const envSchema = z.object({
     .enum(['development', 'production', 'test'])
     .default('development'),
 
-  EMAIL_HOST: z.string().default('smtp.gmail.com'),
-  EMAIL_PORT: z.string().default('465'),
-  EMAIL_USER: z.string().email(),
-  EMAIL_PASS: z.string().min(1),
   APP_URL: z.string().url(),
 });
 
