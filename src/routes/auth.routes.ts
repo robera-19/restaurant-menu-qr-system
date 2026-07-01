@@ -12,6 +12,7 @@ import { protect } from "../middlewares/auth.middleware";
 const router = Router();
 
 router.post("/register", validate(registerSchema), AuthController.register);
+router.post('/resend-verification', AuthController.resendVerification);
 router.get("/verify-email", AuthController.verifyEmail);
 router.post("/login", validate(loginSchema), AuthController.login);
 router.post(

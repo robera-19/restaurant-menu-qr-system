@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import * as AuthService from '../services/auth.service';
 import { env } from '../config/env';
 import { sendEmail } from '../utils/mail';
+import { verificationEmail } from '../emails/verification-email';
+import { resetPasswordEmail } from '../emails/reset-password-email';
 
 const signToken = (id: string, role: string) =>
   jwt.sign({ id, role }, env.JWT_SECRET, { expiresIn: '1d' });
@@ -21,12 +23,12 @@ export const register = async (
 
     const admin = await AuthService.create(req.body);
 
-    const verifyUrl = `http://localhost:3000/verify-email?token=${admin.verificationToken}`;
-    await sendEmail(
-      admin.email,
-      'Verify Your Email',
-      `<a href="${verifyUrl}">Click here to verify</a>`,
-    );
+    const verifyUrl = `${env.APP_URL}/verify-email?token=${admin.verificationToken}`;
+    await sendEmail({
+      to: admin.email,
+      subject: 'Verify your email',
+      html: verificationEmail(admin.fullName, verifyUrl),
+    });
 
     res
       .status(201)
@@ -98,12 +100,12 @@ export const forgotPassword = async (
       resetPasswordExpires: new Date(Date.now() + 3600000),
     });
 
-    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
-    await sendEmail(
-      admin.email,
-      'Password Reset',
-      `<a href="${resetUrl}">Reset Password</a>`,
-    );
+    const resetUrl = `${env.APP_URL}/reset-password?token=${resetToken}`;
+    await sendEmail({
+      to: admin.email,
+      subject: 'Reset Password',
+      html: resetPasswordEmail(admin.fullName, resetUrl),
+    });
 
     res.json({ message: 'Check your email for the reset link' });
   } catch (error) {
@@ -155,6 +157,46 @@ export const getMe = async (
     if (!admin) return res.status(404).json({ message: 'Admin not found' });
 
     res.status(200).json({ admin });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const admin = await AuthService.findByEmail(req.body.email);
+
+    if (!admin)
+      return res.json({
+        message: 'If the email exists, a verification email has been sent.',
+      });
+
+    if (admin.isVerified)
+      return res.status(400).json({
+        message: 'Email is already verified.',
+      });
+
+    const token = crypto.randomBytes(32).toString('hex');
+
+    await AuthService.update(admin.id, {
+      verificationToken: token,
+    });
+
+    const verifyUrl = `${env.APP_URL}/verify-email?token=${token}`;
+
+    await sendEmail({
+      to: admin.email,
+      subject: 'Verify your email',
+      html: verificationEmail(admin.fullName, verifyUrl),
+    });
+
+    res.json({
+      message: 'Verification email sent.',
+    });
   } catch (error) {
     next(error);
   }

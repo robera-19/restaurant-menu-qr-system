@@ -1,26 +1,27 @@
-import nodemailer from "nodemailer";
-import { env } from "../config/env";
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-  host: env.EMAIL_HOST,
-  port: parseInt(env.EMAIL_PORT),
-  secure: env.EMAIL_PORT === "465",
-  auth: {
-    user: env.EMAIL_USER,
-    pass: env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const sendEmail = async (to: string, subject: string, html: string) => {
+interface SendEmailOptions {
+  to: string;
+  subject: string;
+  html: string;
+}
+
+export async function sendEmail({ to, subject, html }: SendEmailOptions) {
   try {
-    await transporter.sendMail({
-      from: `"Ethio Restaurant" <${env.EMAIL_USER}>`,
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
       to,
       subject,
       html,
     });
-    console.log(`📧 Email sent to: ${to}`);
-  } catch (error: any) {
-    console.error("❌ Email failed:", error.message);
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error('Email Error:', error);
+    throw error;
   }
-};
+}

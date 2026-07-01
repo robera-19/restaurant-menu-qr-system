@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
+import process from 'process';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -21,7 +22,29 @@ const app: Application = express();
 // 1. GLOBAL MIDDLEWARES
 // ==========================================
 app.use(helmet());
-app.use(cors());
+const origins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : [];
+app.use(
+  cors({
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      if (
+        origins.indexOf(origin) !== -1 ||
+        process.env.NODE_ENV === 'development'
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 app.use(morgan('dev'));
 app.use(express.json());
 
@@ -57,7 +80,7 @@ app.use('/api/v1/ratings', ratingRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 
 // CUSTOMER MENU (QR BASED ACCESS)
-app.use('/api/menu', customerMenuRoutes);
+app.use('/api/v1/menu', customerMenuRoutes);
 
 // ==========================================
 // 4. 404 HANDLER
