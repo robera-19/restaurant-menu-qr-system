@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.update = exports.create = exports.findByResetToken = exports.findByVerificationToken = exports.findById = exports.findByEmail = void 0;
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const crypto_1 = __importDefault(require("crypto"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const findByEmail = (email) => prisma_1.default.admin.findUnique({ where: { email } });
@@ -21,7 +21,7 @@ const findByResetToken = (token) => prisma_1.default.admin.findFirst({
 });
 exports.findByResetToken = findByResetToken;
 const create = async (data) => {
-    const passwordHash = await bcrypt_1.default.hash(data.password, 12);
+    const passwordHash = await bcryptjs_1.default.hash(data.password, 12);
     const vToken = crypto_1.default.randomBytes(32).toString("hex");
     return prisma_1.default.admin.create({
         data: {

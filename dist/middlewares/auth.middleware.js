@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.restrictTo = exports.protect = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const env_1 = require("../config/env");
+// PROTECT: Basic login check
 const protect = (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token)
@@ -20,8 +21,10 @@ const protect = (req, res, next) => {
     }
 };
 exports.protect = protect;
+// RESTRICT TO: Role check
 const restrictTo = (...allowedRoles) => {
     return (req, res, next) => {
+        // Check if the user's role is in the allowed list
         if (!allowedRoles.includes(req.user.role)) {
             return res
                 .status(403)
