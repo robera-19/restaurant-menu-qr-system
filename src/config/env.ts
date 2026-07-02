@@ -11,6 +11,10 @@ const envSchema = z.object({
     .enum(['development', 'production', 'test'])
     .default('development'),
 
+  ALLOWED_ORIGINS: z
+    .string()
+    .default('http://localhost:3000,http://localhost:3001'),
+
   APP_URL: z.string().url(),
 });
 

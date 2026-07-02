@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
+import { env } from './config/env';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
@@ -22,26 +23,25 @@ const app: Application = express();
 // 1. GLOBAL MIDDLEWARES
 // ==========================================
 app.use(helmet());
-const origins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : [];
+const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((origin) =>
+  origin.trim(),
+);
+
 app.use(
   cors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow requests with no origin (like mobile apps or curl)
+    origin: (origin, callback) => {
+
       if (!origin) return callback(null, true);
 
-      if (
-        origins.indexOf(origin) !== -1 ||
-        process.env.NODE_ENV === 'development'
-      ) {
+      if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
+        console.error(`🚫 CORS Blocked for origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
