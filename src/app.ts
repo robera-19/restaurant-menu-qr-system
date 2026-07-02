@@ -19,6 +19,14 @@ import { errorHandler } from './middlewares/error.middleware';
 
 const app: Application = express();
 
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to Ethio Buna Restaurant API',
+    version: '1.0.0',
+    status: 'Running',
+  });
+});
+
 // ==========================================
 // 1. GLOBAL MIDDLEWARES
 // ==========================================
@@ -30,7 +38,6 @@ const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((origin) =>
 app.use(
   cors({
     origin: (origin, callback) => {
-
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.indexOf(origin) !== -1) {
