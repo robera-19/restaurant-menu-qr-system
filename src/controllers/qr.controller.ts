@@ -60,7 +60,7 @@ export const handleRedirect = async (
     QrService.logScan(qr.id);
 
     // Redirect to your frontend URL
-    const frontendUrl = `http://localhost:3000`;
+    const frontendUrl = `https://restaurant-menu-qr-kappa.vercel.app/q/${shortId}`;
     res.redirect(frontendUrl);
   } catch (error) {
     next(error);

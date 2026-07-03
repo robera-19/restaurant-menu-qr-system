@@ -1,7 +1,7 @@
-import { prisma } from "../config/prisma";
-import { nanoid } from "nanoid";
-import QRCode from "qrcode";
-import { env } from "../config/env";
+import { prisma } from '../config/prisma';
+import { nanoid } from 'nanoid';
+import QRCode from 'qrcode';
+import { env } from '../config/env';
 
 export const QrService = {
   // 1. Create a new QR entry in DB
@@ -28,15 +28,14 @@ export const QrService = {
 
   // 4. Generate the actual printable QR image
   generateImage: async (shortId: string) => {
-    const redirectUrl = `http://localhost:${env.PORT}/q/${shortId}`;
-
+    const backendUrl = `https://restaurant-menu-qr-system-production.up.railway.app/q/${shortId}`;
     // Returns a Base64 Data URL that you can put in an <img src="...">
-    return await QRCode.toDataURL(redirectUrl, {
+    return await QRCode.toDataURL(backendUrl, {
       width: 512,
       margin: 2,
       color: {
-        dark: "#000000",
-        light: "#ffffff",
+        dark: '#000000',
+        light: '#ffffff',
       },
     });
   },
@@ -45,6 +44,6 @@ export const QrService = {
   getAll: () =>
     prisma.qrCode.findMany({
       include: { _count: { select: { scans: true } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     }),
 };
