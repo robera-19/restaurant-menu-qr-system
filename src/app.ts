@@ -7,6 +7,7 @@ import path from 'path';
 import process from 'process';
 
 // Routes
+import { handleRedirect } from './controllers/qr.controller';
 import authRoutes from './routes/auth.routes';
 import categoryRoutes from './routes/category.routes';
 import menuRoutes from './routes/menu.routes';
@@ -63,6 +64,8 @@ app.get('/health', (req: Request, res: Response) => {
     message: 'Server is healthy',
   });
 });
+
+app.get('/q/:shortId', handleRedirect);
 
 // ==========================================
 // 3. CORE API ROUTES (VERSIONED)
