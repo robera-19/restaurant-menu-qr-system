@@ -60,7 +60,7 @@ export const handleRedirect = async (
     QrService.logScan(qr.id);
 
     // Redirect to your frontend URL
-    const frontendUrl = `menu-qr-rob-teck.vercel.app/menu/qr/${shortId}`;
+    const frontendUrl = `https://menu-qr-rob-teck.vercel.app/menu/qr/${shortId}`;
     res.redirect(frontendUrl);
   } catch (error) {
     next(error);
