@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
-import { QrService } from "../services/qr.service";
+import { Request, Response, NextFunction } from 'express';
+import { QrService } from '../services/qr.service';
 
 // ADMIN: Create a new QR code
 export const createQr = async (
@@ -54,13 +54,13 @@ export const handleRedirect = async (
     const { shortId } = req.params;
     const qr = await QrService.getByShortId(shortId);
 
-    if (!qr) return res.status(404).send("Invalid QR Code");
+    if (!qr) return res.status(404).send('Invalid QR Code');
 
     // Background: Log the scan (no await to keep redirect fast)
     QrService.logScan(qr.id);
 
     // Redirect to your frontend URL
-    const frontendUrl = `https://menu-qr-rob-teck.vercel.app/menu/qr/${shortId}`;
+    const frontendUrl = `https://restaurant-menu-qr-customer.vercel.app/menu/qr/${shortId}`;
     res.redirect(frontendUrl);
   } catch (error) {
     next(error);
